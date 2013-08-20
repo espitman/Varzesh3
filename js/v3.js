@@ -7,6 +7,9 @@ function footballNewsList(URL, elm) {
 			url : URL
 		},
 		async : true,
+		beforeSend : function() {
+			$.mobile.showPageLoadingMsg();
+		},
 		success : function(data) {
 			$("#" + elm + " #ul-news").empty();
 			var data = $("<div>" + data + "</div>");
@@ -14,8 +17,11 @@ function footballNewsList(URL, elm) {
 				var title = $(this).text();
 				var link = $(this).attr("href");
 				$("#" + elm + " #ul-news").append("<li data-title='" + title + "' data-link='" + link + "' style='direction:rtl;text-align:right;' href='#anews'>" + title + "</li>");
-				$("#" + elm + " #ul-news").listview("refresh");
+				
 			});
+			changePage("#" + elm);
+			$("#" + elm + " #ul-news").listview("refresh");	
+			$.mobile.hidePageLoadingMsg();
 		},
 		error : function(data) {
 		}
@@ -34,6 +40,9 @@ function sportNewsList() {
 			url : URL
 		},
 		async : true,
+		beforeSend : function() {
+			$.mobile.showPageLoadingMsg();
+		},
 		success : function(data) {
 			var data = $("<div>" + data + "</div>");
 			var data = $(data).find("#identifierwidget-302 .widget-content").html();
@@ -42,8 +51,10 @@ function sportNewsList() {
 				var title = $(this).text();
 				var link = $(this).attr("href");
 				$("#" + elm + " #ul-news").append("<li data-title='" + title + "' data-link='" + link + "' style='direction:rtl;text-align:right;'>" + title + "</li>");
-				$("#" + elm + " #ul-news").listview("refresh");
 			});
+			changePage(a);
+			$("#" + elm + " #ul-news").listview("refresh");	
+			$.mobile.hidePageLoadingMsg();
 		},
 		error : function(data) {
 		}
@@ -62,7 +73,7 @@ function showNews(a) {
 	var anews = localStorage.getItem('allNews_' + link);
 	if (anews) {
 		anews = JSON.parse(anews);
-		drawNews(anews);
+		drawNews(title,anews);
 	} else {
 		$.ajax({
 			type : "POST",
@@ -75,7 +86,7 @@ function showNews(a) {
 			success : function(data) {
 				var anews = JSON.stringify(data);
 				localStorage.setItem('allNews_' + link, anews);
-				drawNews(data);
+				drawNews(title,data);
 			},
 			error : function(data) {
 			}
@@ -84,16 +95,17 @@ function showNews(a) {
 }
 
 //--------------------------------------------------------
-function drawNews(data) {
+function drawNews(title,data) {
 	var data = $("<div>" + data + "</div>");
 	var img = $(data).find("#CenterTable table#NewsTable img").attr("src");
 	var lead = $(data).find("#CenterTable table#NewsTable h2").text();
 	var text = $(data).find("#CenterTable table:nth-child(2) tr:nth-child(2) td").html();
 	$("#anews div[data-role='content']").html("<div id='news_row'></div>")
-	$("#anews div[data-role='content'] #news_row").html("<div id='news_img'><img src='" + img + "' /></div>");
+	$("#anews div[data-role='content'] #news_row").html("<h1>"+title+"</h1>");
+	$("#anews div[data-role='content'] #news_row").append("<div id='news_img'><img src='" + img + "' /></div>");
 	$("#anews div[data-role='content'] #news_row").append("<div id='news_lead'>" + lead + "</div>");
 	$("#anews div[data-role='content']").append("<div id='news_text'>" + text + "</div>");
-    $.mobile.changePage($("#anews"), {transition: "slide"});
+    changePage("#anews");
 	$.mobile.hidePageLoadingMsg();
 }
 
@@ -135,6 +147,8 @@ function drawLeague(data, a) {
 	$("#league div[data-role='content']").append("<h1>" + wTitle + "</h1>");
 	//$("#league div[data-role='content']").append("<h2>"+wDate+"</h2>");
 	$("#league div[data-role='content']").append(data.find(".league-table"));
+	changePage("#league");
+	$.mobile.hidePageLoadingMsg();
 }
 
 //--------------------------------------------------------
@@ -143,6 +157,7 @@ function showLeagueTable(a) {
 	$("#league div[data-role='content']").empty();
 	var title = a.attr("data-title");
 	$("#league h1").html(title);
+	$.mobile.showPageLoadingMsg();
 
 	var link = a.attr("data-table");
 
@@ -193,3 +208,11 @@ function iconsPos() {
 		"right" : (dif / 2) + "px"
 	});
 }
+//--------------------------------------------------------
+function changePage(a) {
+	$.mobile.changePage(a, {transition: "slide"});
+	//console.log(a);		
+	//localStorage.setItem('allNews_' + link, anews);
+	
+}
+
